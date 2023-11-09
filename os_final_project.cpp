@@ -303,7 +303,6 @@ struct MemBlock {
 		for (auto iter = report.begin(); iter != report.end(); iter++) {
 			auto copy_iter = iter;
 			copy_iter++;
-			// copy_iter = end
 			if (copy_iter != report.end())
 				std::cout << "Addresses [" << iter->first << ':' << copy_iter->first - 1 << "] " << iter->second << '\n';
 			else if (iter->second == "Unused")
