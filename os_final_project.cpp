@@ -116,8 +116,8 @@ struct MemBlock {
 				mem_addr = iter->first;
 				proc_size = iter->second.mem_size;
 				found = true;
-			}
-			iter++;
+			} else
+				iter++;
 		}
 
 		if (found) {
