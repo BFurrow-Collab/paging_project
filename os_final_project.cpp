@@ -81,6 +81,10 @@ struct MemBlock {
 		return placed;
 	}
 
+	/**
+ 	 * Gap Finder function
+   	 * @return a map of gaps in memory block
+     	*/
 	std::map<unsigned int, unsigned int> gap_finder() {
 		// Return map with key = position of start of gap and val = size of gap
 		std::map<unsigned int, unsigned int> retval;
@@ -252,6 +256,9 @@ struct MemBlock {
 		}
 	}
 
+	/**
+ 	 * Print function for testing
+     	*/
 	void print() {
 		for (auto iter = process_list.begin(); iter != process_list.end(); iter++) {
 			std::cout << iter->second.proc_name << " starts at position " << iter->first << " and is size " << iter->second.mem_size << '\n';
