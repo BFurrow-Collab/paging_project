@@ -44,7 +44,7 @@ struct MemBlock {
 	 * Placement function
 	*/
 	void place(Process proc, unsigned int pos) {
-		for (unsigned int i = pos; i < proc.mem_size; i++) {
+		for (unsigned int i = pos; i < proc.mem_size + pos; i++) {
 			mem_block[i] = true;
 		}
 
@@ -62,12 +62,12 @@ struct MemBlock {
 			unsigned int stop_bit = i;
 			if (!mem_block[i]) {
 				// Measure out gap while before end and either we don't have the memory requested or we haven't reached occupied memory
-				for (unsigned int j = i; j < mem_size && j - i <= mem_request && !mem_block[j]; j++) {
+				for (unsigned int j = i + 1; j <= mem_size && j - i <= mem_request && !mem_block[j]; j++) {
 					stop_bit = j;
 				}
 
 				// If gap measured is large enough, place
-				if (stop_bit - i + 1 >= mem_request) {
+				if (stop_bit - i >= mem_request) {
 					Process proc(mem_request, name);
 					place(proc, i);
 					placed = true;
@@ -81,20 +81,107 @@ struct MemBlock {
 		return placed;
 	}
 
+	std::map<unsigned int, unsigned int> gap_finder() {
+		// Return map with key = position of start of gap and val = size of gap
+		std::map<unsigned int, unsigned int> retval;
+
+		// for mem_block
+		for (unsigned int i = 0; i < mem_size; i++) {
+			unsigned int stop_bit = i;
+			// If you find a gap
+			if (!mem_block[i]) {
+				// Measure out to where gap stops
+				for (unsigned int j = i + 1; j <= mem_size && !mem_block[j]; j++) {
+					stop_bit = j;
+				}
+
+				// Store gap size at start position
+				retval[i] = stop_bit - i;
+
+				// skip up to end of gap
+				i = stop_bit;
+			}
+		}
+
+		return retval;
+	}
+
 	/**
 	 * Best fit request function
 	*/
-	bool best_fit(unsigned int mem_size, std::string name) {
-		// TODO: Implement best fit algorithm
-		return false;
+	bool best_fit(unsigned int mem_request, std::string name) {
+		// Assume not placeable
+		bool placeable = false;
+
+		// Variables to record position and gap
+		unsigned int place_pos = 0;
+		unsigned int found_gap = 0;
+
+		// Get map of gaps
+		std::map<unsigned int, unsigned int> gaps = gap_finder();
+
+		// For all gaps
+		for (auto iter = gaps.begin(); iter != gaps.end() && !gaps.empty(); iter++) {
+			// If a possible gap hasn't been found yet, record the first gap big enough
+			if (!placeable && iter->second >= mem_request) {
+				place_pos = iter->first;
+				found_gap = iter->second;
+				placeable = true;
+			}
+			// If a gap big enough has been found, record any gap able to hold process
+			// and smaller than existing smallest gap
+			else if (iter->second >= mem_request && iter->second < found_gap) {
+				place_pos = iter->first;
+				found_gap = iter->second;
+			}
+		}
+
+		// If there was a gap big enough found, place
+		if (placeable) {
+			Process proc(mem_request, name);
+			place(proc, place_pos);
+		}
+
+		return placeable;
 	}
 
 	/**
 	 * Worst fit request function
 	*/
-	bool worst_fit(unsigned int mem_size, std::string process_name) {
-		// TODO: Implement worst fit algorithm
-		return false;
+	bool worst_fit(unsigned int mem_request, std::string name) {
+		// Assume not placeable
+		bool placeable = false;
+
+		// Variables to record position and gap
+		unsigned int place_pos = 0;
+		unsigned int found_gap = 0;
+
+		// Get map of gaps
+		std::map<unsigned int, unsigned int> gaps = gap_finder();
+
+		// For all gaps
+		for (auto iter = gaps.begin(); iter != gaps.end() && !gaps.empty(); iter++) {
+			// If a possible gap hasn't been found yet, record the first gap big enough
+			if (!placeable && iter->second >= mem_request) {
+				place_pos = iter->first;
+				found_gap = iter->second;
+				placeable = true;
+			}
+			// If a gap big enough has been found, record any gap able to hold process
+			// and bigger than the existing biggest gap
+			else if (iter->second >= mem_request && iter->second > found_gap) {
+				place_pos = iter->first;
+				found_gap = iter->second;
+			}
+		}
+
+		// If there was a gap big enough found, place
+		if (placeable) {
+			Process proc(mem_request, name);
+			place(proc, place_pos);
+		}
+
+		return placeable;
 	}
 
 	/**
@@ -165,6 +252,28 @@ struct MemBlock {
 		}
 	}
 
+	void print() {
+		for (auto iter = process_list.begin(); iter != process_list.end(); iter++) {
+			std::cout << iter->second.proc_name << " starts at position " << iter->first << " and is size " << iter->second.mem_size << '\n';
+		}
+
+		for (unsigned int i = 0; i < mem_size; i++) {
+			if (mem_block[i])
+				std::cout << 'X';
+			else
+				std::cout << '_';
+			if (i < 10)
+				std::cout << "  ";
+			else
+				std::cout << "   ";
+		}
+		std::cout << '\n';
+		for (unsigned int i = 0; i < mem_size; i++) {
+			std::cout << i << "  ";
+		}
+		std::cout << '\n';
+	}
+
 	/**
 	 * Status Report function
 	*/
@@ -174,30 +283,33 @@ struct MemBlock {
 			return;
 		}
 
-		auto iter = process_list.begin();
-		for (unsigned int i = 0; i < mem_size; i++) {
-			if (mem_block[i]) {
-				std::cout << "Addresses [" << i << ':' << i + iter->second.mem_size - 1
-					<< "] Process " << iter->second.proc_name << '\n';
-				i += iter->second.mem_size - 1;
-				iter++;
-			} else {
-				unsigned int start_block = i;
-				unsigned int end_block = i;
-				for (unsigned int j = i + 1; j < mem_size && !mem_block[j]; j++) {
-					end_block = j;
-				}
+		// Create report map
+		std::map<unsigned int, std::string> report;
 
-				if (end_block < mem_size - 1)
-					std::cout << "Addresses [" << start_block << ':' << end_block
-						<< "] Unused\n";
-				else {
-					std::cout << "Addresses[" << start_block << "] . . .\n";
-					break;
-				}
+		// Add gaps to report
+		std::map<unsigned int, unsigned int> gaps = gap_finder();
+		for (auto iter = gaps.begin(); iter != gaps.end() && !gaps.empty(); iter++) {
+			report[iter->first] = "Unused";
+		}
 
-				i = end_block;
-			}
+		// Add processes to report
+		for (auto iter = process_list.begin(); iter != process_list.end() && !process_list.empty(); iter++) {
+			report[iter->first] = "Process " + iter->second.proc_name;
+		}
+
+		// Process list has p1 and p2, which means report has p1 and p2
+
+		// print report
+		for (auto iter = report.begin(); iter != report.end(); iter++) {
+			auto copy_iter = iter;
+			copy_iter++;
+			// copy_iter = end
+			if (copy_iter != report.end())
+				std::cout << "Addresses [" << iter->first << ':' << copy_iter->first - 1 << "] " << iter->second << '\n';
+			else if (iter->second == "Unused")
+				std::cout << "Addresses [" << iter->first << "] . . .\n";
+			else
+				std::cout << "Addresses [" << iter->first << ':' << mem_size - 1 << "] " << iter->second << '\n';
 		}
 	}
 };
