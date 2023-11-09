@@ -103,21 +103,34 @@ struct MemBlock {
 	bool release(const std::string process_name) {
 		// Not found yet
 		bool found = false;
+
+		// Variables for assessment
 		unsigned int proc_size = 0;
 		unsigned int mem_addr = 0;
+		auto iter = process_list.begin();
 
-		for (auto iter = process_list.begin(); iter != process_list.end() && !found; iter++) {
+		// While not at end of list and not found
+		while (iter != process_list.end() && !found) {
+			// If iter name is correct, record data and end loop
 			if (iter->second.proc_name == process_name) {
 				mem_addr = iter->first;
 				proc_size = iter->second.mem_size;
-				process_list.erase(iter);
 				found = true;
 			}
+			iter++;
 		}
 
-		if (found)
+		if (found) {
+			// Map doesn't like when you erase a single-entry list, so clear
+			if (process_list.size() == 1)
+				process_list.clear();
+			else
+				process_list.erase(iter);
+
+			// Reset mem chunk
 			for (unsigned int i = mem_addr; i < mem_addr + proc_size; i++)
 				mem_block[i] = false;
+		}
 
 		return found;
 	}
