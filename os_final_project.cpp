@@ -10,6 +10,7 @@
 
 /**
  * Process structure for maintaining addresses and names
+ * By: Ricardo Harris
 */
 struct Process {
 	Process()
