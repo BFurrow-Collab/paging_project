@@ -4,6 +4,11 @@
 #include <bits/stdc++.h>
 
 /**
+ * Completed By: Bryce Furrow, Ricardo Harris
+ * On: 11/14/2023
+*/
+
+/**
  * Process structure for maintaining addresses and names
 */
 struct Process {
@@ -21,6 +26,7 @@ struct Process {
 
 /**
  * Memory Block structure for maintaining size and processes
+ * By: Bryce Furrow and Ricardo Harris
 */
 struct MemBlock {
 	MemBlock(unsigned int mem_request)
@@ -42,6 +48,7 @@ struct MemBlock {
 
 	/**
 	 * Placement function
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	void place(Process proc, unsigned int pos) {
 		for (unsigned int i = pos; i < proc.mem_size + pos; i++) {
@@ -53,6 +60,7 @@ struct MemBlock {
 
 	/**
 	 * First fit request function
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	bool first_fit(unsigned int mem_request, std::string name) {
 		bool placed = false;
@@ -84,6 +92,7 @@ struct MemBlock {
 	/**
  	 * Gap Finder function
    	 * @return a map of gaps in memory block
+ 	 * By: Bryce Furrow and Ricardo Harris
      	*/
 	std::map<unsigned int, unsigned int> gap_finder() {
 		// Return map with key = position of start of gap and val = size of gap
@@ -112,6 +121,7 @@ struct MemBlock {
 
 	/**
 	 * Best fit request function
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	bool best_fit(unsigned int mem_request, std::string name) {
 		// Assume not placeable
@@ -151,6 +161,7 @@ struct MemBlock {
 
 	/**
 	 * Worst fit request function
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	bool worst_fit(unsigned int mem_request, std::string name) {
 		// Assume not placeable
@@ -190,6 +201,7 @@ struct MemBlock {
 
 	/**
 	 * Release function
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	bool release(const std::string process_name) {
 		// Not found yet
@@ -233,6 +245,7 @@ struct MemBlock {
 	 * move processes from outward in outward to create a contiguous chunk.
 	 * 
 	 * Be my guest.
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	void compact() {
 		// Make queue of processes to preserve order
@@ -258,6 +271,7 @@ struct MemBlock {
 
 	/**
  	 * Print function for testing
+ 	 * By: Bryce Furrow and Ricardo Harris
      	*/
 	void print() {
 		for (auto iter = process_list.begin(); iter != process_list.end(); iter++) {
@@ -283,6 +297,7 @@ struct MemBlock {
 
 	/**
 	 * Status Report function
+ 	 * By: Bryce Furrow and Ricardo Harris
 	*/
 	void status_report() {
 		if (process_list.empty()) {
@@ -330,22 +345,26 @@ struct MemBlock {
 
 /**
  * Allocator function. Main program.
+ * By: Ricardo Harris
 */
 void allocator(MemBlock mem_block);
 
 /**
  * Command parser.
  * @return vector of substrings (command and arguments)
+ * By: Ricardo Harris
 */
 std::vector<std::string> parse(std::string& input);
 
 /**
  * Process controller to call functions based on command
+ * By: Ricardo Harris
 */
 void controller(const std::vector<std::string>& cmd_args, MemBlock& mem_block);
 
 /**
  * Commands
+ * By: Ricardo Harris
 */
 void request(const std::vector<std::string>& cmd_args, MemBlock& mem_block);
 void release(const std::vector<std::string>& cmd_args, MemBlock& mem_block);
